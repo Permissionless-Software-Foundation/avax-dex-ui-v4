@@ -1,8 +1,8 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.bch-wallet.app',
-  appName: 'bch-wallet-web3',
+  appId: 'com.avax-dex-ui.app',
+  appName: 'avax-dex-ui',
   webDir: 'build',
   bundledWebRuntime: false
 };
