@@ -14,6 +14,7 @@ import BchWallet from '../bch-wallet'
 import BchSend from '../bch-send'
 import SlpTokens from '../slp-tokens'
 import ServerSelectView from '../servers/select-server-view'
+import AvaxWallet from '../avax-wallet'
 
 let _this
 
@@ -59,6 +60,12 @@ class AppBody extends React.Component {
       case 2:
         return (
           <BchWallet
+            appData={_this.state.appData}
+          />
+        )
+      case 3:
+        return (
+          <AvaxWallet
             appData={_this.state.appData}
           />
         )

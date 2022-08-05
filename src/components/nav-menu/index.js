@@ -36,6 +36,7 @@ class NavMenu extends React.Component {
               <Nav.Link href='#' onClick={() => this.handleClickEvent(0)}>BCH</Nav.Link>
               <Nav.Link href='#' onClick={() => this.handleClickEvent(1)}>BCH Tokens</Nav.Link>
               <Nav.Link href='#' onClick={() => this.handleClickEvent(2)}>BCH Wallet</Nav.Link>
+              <Nav.Link href='#' onClick={() => this.handleClickEvent(3)}>AVAX Wallet</Nav.Link>
             </Nav>
           </Navbar.Collapse>
         </Navbar>

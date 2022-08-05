@@ -11,7 +11,7 @@ import WalletSummary from './wallet-summary'
 import WalletClear from './clear-wallet'
 import WalletImport from './import-wallet'
 
-class BchWallet extends React.Component {
+class AvaxWallet extends React.Component {
   constructor (props) {
     super(props)
 
@@ -39,4 +39,4 @@ class BchWallet extends React.Component {
   }
 }
 
-export default BchWallet
+export default AvaxWallet
