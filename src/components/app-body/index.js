@@ -15,6 +15,7 @@ import BchSend from '../bch-send'
 import SlpTokens from '../slp-tokens'
 import ServerSelectView from '../servers/select-server-view'
 import AvaxWallet from '../avax-wallet'
+import AvaxTokens from '../avax-tokens'
 
 // let _this
 
@@ -54,16 +55,18 @@ class AppBody extends React.Component {
 
     switch (menuState) {
       case 0:
-        return (<BchSend appData={this.state.appData} />)
+        return (<AvaxTokens appData={this.state.appData} />)
       case 1:
-        return (<SlpTokens appData={this.state.appData} />)
+        return (<BchSend appData={this.state.appData} />)
       case 2:
+        return (<SlpTokens appData={this.state.appData} />)
+      case 3:
         return (
           <BchWallet
             appData={this.state.appData}
           />
         )
-      case 3:
+      case 4:
         return (
           <AvaxWallet
             appData={this.state.appData}
@@ -74,7 +77,7 @@ class AppBody extends React.Component {
       case 100:
         return (<ServerSelectView appData={this.state.appData} />)
       default:
-        return (<BchSend appData={this.state.appData} />)
+        return (<AvaxTokens appData={this.state.appData} />)
     }
   }
 }

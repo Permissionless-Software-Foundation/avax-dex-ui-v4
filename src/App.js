@@ -79,7 +79,8 @@ class App extends React.Component {
         avax: 0,
         privateKey: '',
         publicKey: '',
-        type: ''
+        type: '',
+        balances: []
       }
     }
 
@@ -142,6 +143,7 @@ class App extends React.Component {
       this.setState({
         avaxWallet
       })
+      console.log('AVAX wallet initialized.')
       // console.log('avaxWallet: ', avaxWallet)
       // console.log('avaxWalletState: ', this.state.avaxWalletState)
 

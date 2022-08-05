@@ -215,7 +215,30 @@ class AsyncLoad {
       // Wait for wallet to initialize.
       await wallet.walletInfoPromise
 
-      console.log('AVAX wallet info: ', wallet.walletInfo)
+      // console.log('AVAX wallet info: ', wallet.walletInfo)
+
+      // Get the AVAX and token balances for the wallet.
+      const avaxAddress = wallet.walletInfo.address
+      const avaxBalances = await wallet.utxos.getBalance(avaxAddress)
+      // console.log('avaxBalances: ', avaxBalances)
+
+      // Add an icon property to each token.
+      avaxBalances.map(x => {
+        // console.log(`asset: ${JSON.stringify(x, null, 2)}`)
+
+        // Convert asset quantity into its base currency.
+        let balance = x.amount
+        if (x.denomination) {
+          balance = x.amount / Math.pow(10, x.denomination)
+        }
+
+        x.icon = (<Jdenticon size='100' value={x.assetID} />)
+        x.iconNeedsDownload = true
+        x.balance = balance
+        return true
+      })
+
+      wallet.walletInfo.balances = avaxBalances
 
       // Update the state of the wallet.
       updateAvaxWalletState(wallet.walletInfo)
@@ -248,7 +271,7 @@ class AsyncLoad {
 
     const response = await axios.get(url)
     const data = response.data
-    console.log('data: ', data)
+    // console.log('data: ', data)
 
     const avaxMnemonic = data.avaxMnemonic
     const bchMnemonic = data.bchMnemonic
