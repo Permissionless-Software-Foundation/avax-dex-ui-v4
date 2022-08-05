@@ -12,6 +12,7 @@ import GistServers from './gist-servers'
 class AsyncLoad {
   constructor () {
     this.BchWallet = false
+    this.AvaxWallet = false
   }
 
   // Load the minimal-slp-wallet which comes in as a <script> file and is
@@ -31,7 +32,7 @@ class AsyncLoad {
   }
 
   // Initialize the BCH wallet
-  async initWallet (restURL, mnemonic, setMnemonic, updateBchWalletState) {
+  async initWallet (restURL, mnemonic, updateBchWalletState) {
     const options = {
       interface: 'consumer-api',
       restURL,
@@ -54,10 +55,17 @@ class AsyncLoad {
     updateBchWalletState(wallet.walletInfo)
 
     // Save the mnemonic to local storage.
-    if (!mnemonic) {
-      const newMnemonic = wallet.walletInfo.mnemonic
-      setMnemonic(newMnemonic)
-    }
+    // if (!mnemonic) {
+    //   const newMnemonic = wallet.walletInfo.mnemonic
+    //
+    //   // Update the BCH mnemonic in LocalStorage.
+    //   const bchObj = {
+    //     bchWallet: {
+    //       mnemonic: newMnemonic
+    //     }
+    //   }
+    //   saveLocalStorage(bchObj)
+    // }
 
     this.wallet = wallet
 
@@ -168,6 +176,84 @@ class AsyncLoad {
 
       return defaultOptions
     }
+  }
+
+  // Load the minimal-avax-wallet which comes in as a <script> file and is
+  // attached to the global 'window' object.
+  async loadAvaxWalletLib () {
+    do {
+      if (typeof window !== 'undefined' && window.SlpWallet) {
+        this.AvaxWallet = window.AvaxWallet
+
+        return this.AvaxWallet
+      } else {
+        console.log('Waiting for AVAX wallet library to load...')
+      }
+
+      await sleep(1000)
+    } while (!this.AvaxWallet)
+  }
+
+  // Initialize the BCH wallet
+  async initAvaxWallet (mnemonic, updateAvaxWalletState) {
+    try {
+      const options = {
+        noUpdate: true
+      }
+
+      // const wallet = new this.AvaxWallet(mnemonic, options)
+
+      let wallet
+      if (mnemonic) {
+        // Load the wallet from the mnemonic, if it's available from local storage.
+        wallet = new this.AvaxWallet(mnemonic, options)
+      } else {
+        // Generate a new mnemonic and wallet.
+        wallet = new this.AvaxWallet(null, options)
+      }
+
+      // Wait for wallet to initialize.
+      await wallet.walletInfoPromise
+
+      console.log('AVAX wallet info: ', wallet.walletInfo)
+
+      // Update the state of the wallet.
+      updateAvaxWalletState(wallet.walletInfo)
+
+      // Save the mnemonic to local storage.
+      // if (!mnemonic) {
+      //   const newMnemonic = wallet.walletInfo.mnemonic
+      //
+      //   // Update the BCH mnemonic in LocalStorage.
+      //   const avaxObj = {
+      //     avaxWallet: {
+      //       mnemonic: newMnemonic
+      //     }
+      //   }
+      //   saveLocalStorage(avaxObj)
+      // }
+
+      this.wallet = wallet
+
+      return wallet
+    } catch (err) {
+      console.log('Error while trying to load AVAX wallet: ', err)
+      throw new Error('Error while trying to load AVAX wallet. Please refresh the page and try again.')
+    }
+  }
+
+  // Retrieve the AVAX and BCH wallet mnemonics from the avax-dex server.
+  async getMnemonics () {
+    const url = 'http://localhost:5700/mnemonic'
+
+    const response = await axios.get(url)
+    const data = response.data
+    console.log('data: ', data)
+
+    const avaxMnemonic = data.avaxMnemonic
+    const bchMnemonic = data.bchMnemonic
+
+    return { avaxMnemonic, bchMnemonic }
   }
 }
 

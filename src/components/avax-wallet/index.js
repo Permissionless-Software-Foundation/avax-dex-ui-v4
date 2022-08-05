@@ -8,8 +8,8 @@ import React from 'react'
 // Local Libraries
 import WebWalletWarning from './warning'
 import WalletSummary from './wallet-summary'
-import WalletClear from './clear-wallet'
-import WalletImport from './import-wallet'
+// import WalletClear from './clear-wallet'
+// import WalletImport from './import-wallet'
 
 class AvaxWallet extends React.Component {
   constructor (props) {
@@ -17,23 +17,22 @@ class AvaxWallet extends React.Component {
 
     this.state = {
       appData: props.appData,
-      bchWallet: props.appData.bchWallet,
-      bchWalletState: props.appData.bchWalletState,
-      delMnemonic: props.appData.delMnemonic,
-      setMnemonic: props.appData.setMnemonic
+      avaxWallet: props.appData.avaxWallet,
+      avaxWalletState: props.appData.avaxWalletState
     }
   }
+
+  // <br />
+  // <WalletClear delMnemonic={this.state.delMnemonic} />
+  // <br />
+  // <WalletImport avaxWallet={this.state.avaxWallet} setMnemonic={this.state.setMnemonic} />
 
   render () {
     return (
       <>
         <WebWalletWarning />
         <br />
-        <WalletSummary bchWallet={this.state.bchWallet} bchWalletState={this.state.bchWalletState} appData={this.state.appData} />
-        <br />
-        <WalletClear delMnemonic={this.state.delMnemonic} />
-        <br />
-        <WalletImport bchWallet={this.state.bchWallet} setMnemonic={this.state.setMnemonic} />
+        <WalletSummary avaxWallet={this.state.avaxWallet} avaxWalletState={this.state.avaxWalletState} appData={this.state.appData} />
       </>
     )
   }

@@ -66,7 +66,7 @@ class AppBody extends React.Component {
       case 3:
         return (
           <AvaxWallet
-            appData={_this.state.appData}
+            appData={this.state.appData}
           />
         )
 

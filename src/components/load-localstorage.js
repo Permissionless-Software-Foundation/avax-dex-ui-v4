@@ -7,16 +7,18 @@
 import useLocalStorageState from 'use-local-storage-state'
 
 function LoadLocalStorage (props) {
-  const [mnemonic, setMnemonic, { removeItem }] = useLocalStorageState('bchMnemonic', {
+  const [avaxDexLocalStorage, setAvaxDexLocalStorage, { removeItem }] = useLocalStorageState('avax-dex', {
     ssr: true,
     defaultValue: undefined
   })
 
+  console.log('LocalLocalStorage() loaded data from LocalStorage.')
+
   // This function is used to pass the mnemonic up to the parent component.
-  const passMnemonic = props.passMnemonic
+  const passLocalStorage = props.passLocalStorage
 
   // Pass the result up to the parent component.
-  passMnemonic(mnemonic, setMnemonic, removeItem)
+  passLocalStorage(avaxDexLocalStorage, setAvaxDexLocalStorage, removeItem)
 
   return true
 }

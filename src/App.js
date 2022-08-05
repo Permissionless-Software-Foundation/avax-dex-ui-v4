@@ -15,7 +15,7 @@ import SelectServerButton from './components/servers/select-server-button'
 import Footer from './components/footer'
 import NavMenu from './components/nav-menu'
 import AppBody from './components/app-body'
-import LoadLocalStorage from './components/load-localstorage'
+// import LoadLocalStorage from './components/load-localstorage'
 
 // Default restURL for a back-end server.
 let serverUrl = 'https://free-bch.fullstack.cash'
@@ -41,6 +41,7 @@ class App extends React.Component {
       // State specific to this top-level component.
       walletInitialized: false,
       bchWallet: false, // BCH wallet instance
+      avaxWallet: false, // AVAX wallet instance
       menuState: 0, // The current View being displayed in the app
       queryParamExists: false, // Becomes true if query parameters are detected in the URL.
       serverUrl, // Stores the URL for the currently selected server.
@@ -68,15 +69,25 @@ class App extends React.Component {
         bchBalance: 0,
         slpTokens: [],
         bchUsdPrice: 150
+      },
+
+      // AVAX wallet state. This is passed to all child components.
+      avaxWalletState: {
+        mnemonic: undefined,
+        address: undefined,
+        avaxUsdPrice: 20,
+        avax: 0,
+        privateKey: '',
+        publicKey: '',
+        type: ''
       }
     }
 
     this.cnt = 0
 
-    // These values are set by load-localstorage.js when it reads Local Storage.
-    this.mnemonic = undefined
-    this.setMnemonic = undefined
-    this.delMnemonic = undefined
+    // Bind 'this' to local functions.
+    this.updateBchWalletState = this.updateBchWalletState.bind(this)
+    this.updateAvaxWalletState = this.updateAvaxWalletState.bind(this)
 
     _this = this
   }
@@ -84,8 +95,10 @@ class App extends React.Component {
   async componentDidMount () {
     try {
       this.addToModal('Loading minimal-slp-wallet')
-
       await this.asyncLoad.loadWalletLib()
+
+      this.addToModal('Loading minimal-avax-wallet')
+      await this.asyncLoad.loadAvaxWalletLib()
 
       // Update the list of potential back end servers.
       this.addToModal('Getting alternative servers')
@@ -93,17 +106,28 @@ class App extends React.Component {
       this.setState({
         servers
       })
+      console.log('Got alternative servers.')
+
+      // Wait for the local storage data to be loaded
+      // await this.waitForLocalStorage()
+
+      // Get mnemonics from the app
+      this.addToModal('Getting wallet mnemonics')
+      const { avaxMnemonic, bchMnemonic } = await this.asyncLoad.getMnemonics()
+      console.log('Got wallet mnemonics')
 
       // Initialize the BCH wallet with the currently selected server.
-      this.addToModal('Initializing wallet')
-      const bchWallet = await this.asyncLoad.initWallet(serverUrl, this.mnemonic, this.setMnemonic, this.updateBchWalletState)
+      this.addToModal('Initializing BCH wallet')
+      const bchWallet = await this.asyncLoad.initWallet(serverUrl, bchMnemonic, this.updateBchWalletState)
       this.setState({
         bchWallet
       })
+      console.log('BCH wallet initialized.')
 
       // Get the BCH balance of the wallet.
       this.addToModal('Getting BCH balance')
       await this.asyncLoad.getWalletBchBalance(bchWallet, this.updateBchWalletState)
+      console.log('Retrieved BCH balance.')
 
       // Get the SLP tokens held by the wallet.
       this.addToModal('Getting SLP tokens')
@@ -112,6 +136,14 @@ class App extends React.Component {
       // Get the SLP tokens held by the wallet.
       this.addToModal('Getting BCH spot price in USD')
       await this.asyncLoad.getUSDExchangeRate(bchWallet, this.updateBchWalletState)
+
+      this.addToModal('Initializing AVAX wallet')
+      const avaxWallet = await this.asyncLoad.initAvaxWallet(avaxMnemonic, this.updateAvaxWalletState)
+      this.setState({
+        avaxWallet
+      })
+      // console.log('avaxWallet: ', avaxWallet)
+      // console.log('avaxWalletState: ', this.state.avaxWalletState)
 
       // Close the modal once initialization is done.
       this.setState({
@@ -124,6 +156,7 @@ class App extends React.Component {
         `Error: ${err.message}`,
         'Try selecting a different back end server using the drop-down menu at the bottom of the app.'
       ]
+      console.log('Error while trying to initialized app: ', err)
 
       this.setState({
         modalBody: this.modalBody,
@@ -143,23 +176,29 @@ class App extends React.Component {
     // This is a macro object that is passed to all child components. It gathers
     // all the data and handlers used throughout the app.
     const appData = {
-      // Wallet and wallet state
+      // BCH Wallet and wallet state
       bchWallet: this.state.bchWallet,
       bchWalletState: this.state.bchWalletState,
+      updateBchWalletState: this.updateBchWalletState,
+
+      // AVAX Wallet and wallet state
+      avaxWallet: this.state.avaxWallet,
+      avaxWalletState: this.state.avaxWalletState,
+      updateAvaxWalletState: this.updateAvaxWalletState,
 
       // Functions
-      updateBchWalletState: this.updateBchWalletState,
-      setMnemonic: this.setMnemonic,
-      delMnemonic: this.delMnemonic,
+      saveLocalStorage: this.saveLocalStorage,
+      deleteLocalStorage: this.deleteLocalStorage,
 
       servers: this.state.servers // Alternative back end servers
     }
+
+    // <LoadLocalStorage passLocalStorage={this.passLocalStorage} />
 
     return (
       <>
         <GetRestUrl />
         <LoadScripts />
-        <LoadLocalStorage passMnemonic={this.passMnemonic} />
         <NavMenu menuHandler={this.onMenuClick} />
 
         {
@@ -180,6 +219,28 @@ class App extends React.Component {
         <Footer />
       </>
     )
+  }
+
+  // This function is called by componentDidMount().
+  async startup () {
+
+  }
+
+  // This function pauses startup execution and waits for the LocalLocalStorage
+  // component to finish loading the LocalStorage data.
+  async waitForLocalStorage () {
+    do {
+      const now = new Date()
+      console.log(`Waiting for LocalStorage to load... ${now.toLocaleString()}`)
+
+      console.log('this.localStorage: ', this.localStorage)
+
+      await this.sleep(1000)
+    } while (!this.localStorage.setAvaxDexLocalStorage)
+  }
+
+  sleep (ms) {
+    return new Promise(resolve => setTimeout(resolve, ms))
   }
 
   // Add a new line to the waiting modal.
@@ -206,12 +267,62 @@ class App extends React.Component {
 
   // This function is used to retrieve the mnemonic from local storage, which
   // is handled by a child component (load-localstorage.js)
-  passMnemonic (mnemonic, setMnemonic, delMnemonic) {
-    // console.log(`mnemonic loaded from local storage: ${mnemonic}`)
+  passLocalStorage (avaxDexLocalStorage, setAvaxDexLocalStorage, delAvaxDexLocalStorage) {
+    try {
+      console.log(`app data loaded from local storage: ${avaxDexLocalStorage}`)
 
-    _this.mnemonic = mnemonic
-    _this.setMnemonic = setMnemonic
-    _this.delMnemonic = delMnemonic
+      console.log('avaxDexLocalStorage: ', avaxDexLocalStorage)
+
+      try {
+        const avaxDexLocalStorageData = JSON.parse(avaxDexLocalStorage)
+
+        // Save the returned data and methods to the state of this component.
+        this.localStorage = {
+          avaxDexLocalStorageData,
+          setAvaxDexLocalStorage,
+          delAvaxDexLocalStorage
+        }
+      } catch (err) { /* exit quietly */ }
+
+    // _this.mnemonic = mnemonic
+    // _this.setMnemonic = setMnemonic
+    // _this.delMnemonic = delMnemonic
+    } catch (err) {
+      console.error('Error in App.js/passMnemonic() when trying to read LocalStorage data: ', err)
+    }
+  }
+
+  // Will replace the current LocalStorage data with a JSON object passed into
+  // the function. It uses Object.assign() so that a partial object can be
+  // passed in, to do just a partial update and replace.
+  saveLocalStorage (inObj) {
+    // This default object is used primarily for documentation. This is the
+    // 'shape' of the Object, with default values, saved to LocalStorage.
+    const defaultObj = {
+      bchWallet: {
+        mnemonic: ''
+      },
+      avaxWallet: {
+        mnemonic: ''
+      }
+    }
+
+    const newObj = Object.assign(defaultObj, this.avaxDexLocalStorageData, inObj)
+
+    const jsonStr = JSON.stringify(newObj)
+
+    console.log('this.localStorage: ', this.localStorage)
+
+    try {
+      this.localStorage.setAvaxDexLocalStorage(jsonStr)
+    } catch (err) {
+      console.error('Could not save LocalStorage data.')
+    }
+  }
+
+  // Wipe the local storage.
+  deleteLocalStorage () {
+    this.localStorage.delAvaxDexLocalStorage()
   }
 
   // This function is passed to child components in order to update the wallet
@@ -219,12 +330,28 @@ class App extends React.Component {
   updateBchWalletState (walletObj) {
     // console.log('updateBchWalletState() walletObj: ', walletObj)
 
-    const oldState = _this.state.bchWalletState
+    const oldState = this.state.bchWalletState
 
     const bchWalletState = Object.assign({}, oldState, walletObj)
 
-    _this.setState({
+    this.setState({
       bchWalletState
+    })
+
+    // console.log(`New wallet state: ${JSON.stringify(bchWalletState, null, 2)}`)
+  }
+
+  // This function is passed to child components in order to update the wallet
+  // state. This function is important to make this wallet a PWA.
+  updateAvaxWalletState (walletObj) {
+    // console.log('updateBchWalletState() walletObj: ', walletObj)
+
+    const oldState = this.state.avaxWalletState
+
+    const avaxWalletState = Object.assign({}, oldState, walletObj)
+
+    this.setState({
+      avaxWalletState
     })
 
     // console.log(`New wallet state: ${JSON.stringify(bchWalletState, null, 2)}`)
