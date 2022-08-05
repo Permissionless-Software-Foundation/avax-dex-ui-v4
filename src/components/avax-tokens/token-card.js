@@ -9,6 +9,9 @@ import { Container, Row, Col, Card } from 'react-bootstrap'
 // Local libraries
 import InfoButton from './info-button'
 import SendTokenButton from './send-token-button'
+import SellTokenButton from './sell-token-button'
+
+const AVAX_ASSET_ID = 'FvwEAhmxKfeiG8SnEvq42hc6whRyY3EFYAvebMqDNDGCgxN5Z'
 
 function TokenCard (props) {
   // console.log('TokenCard props.token: ', props.token)
@@ -50,6 +53,19 @@ function TokenCard (props) {
                     refreshTokens={props.refreshTokens}
                   />
                 </Col>
+                {
+                  (props.token.assetID !== AVAX_ASSET_ID)
+                    ? (
+                      <Col>
+                        <SellTokenButton
+                          token={props.token}
+                          appData={props.appData}
+                          refreshTokens={props.refreshTokens}
+                        />
+                      </Col>)
+                    : null
+                }
+
               </Row>
             </Container>
           </Card.Body>
