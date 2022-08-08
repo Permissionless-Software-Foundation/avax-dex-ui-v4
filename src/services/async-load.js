@@ -181,8 +181,9 @@ class AsyncLoad {
   // Load the minimal-avax-wallet which comes in as a <script> file and is
   // attached to the global 'window' object.
   async loadAvaxWalletLib () {
+    console.log('Loading AVAX Wallet library.')
     do {
-      if (typeof window !== 'undefined' && window.SlpWallet) {
+      if (typeof window !== 'undefined' && window.AvaxWallet) {
         this.AvaxWallet = window.AvaxWallet
 
         return this.AvaxWallet
@@ -192,6 +193,8 @@ class AsyncLoad {
 
       await sleep(1000)
     } while (!this.AvaxWallet)
+
+    console.log('this.AvaxWallet: ', this.AvaxWallet)
   }
 
   // Initialize the BCH wallet
@@ -267,16 +270,21 @@ class AsyncLoad {
 
   // Retrieve the AVAX and BCH wallet mnemonics from the avax-dex server.
   async getMnemonics () {
-    const url = 'http://localhost:5700/mnemonic'
+    try {
+      const url = 'http://localhost:5700/mnemonic'
 
-    const response = await axios.get(url)
-    const data = response.data
-    // console.log('data: ', data)
+      const response = await axios.get(url)
+      const data = response.data
+      // console.log('data: ', data)
 
-    const avaxMnemonic = data.avaxMnemonic
-    const bchMnemonic = data.bchMnemonic
+      const avaxMnemonic = data.avaxMnemonic
+      const bchMnemonic = data.bchMnemonic
 
-    return { avaxMnemonic, bchMnemonic }
+      return { avaxMnemonic, bchMnemonic }
+    } catch (err) {
+      console.error('Error in getMnemonics(): ', err)
+      throw new Error('Error trying to retrieve mnemonics. Are you sure avax-dex running?')
+    }
   }
 }
 

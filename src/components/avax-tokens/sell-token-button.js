@@ -9,8 +9,12 @@
 import React from 'react'
 import { Button, Modal, Container, Row, Col, Form, Spinner } from 'react-bootstrap'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPaperPlane, faPaste } from '@fortawesome/free-solid-svg-icons'
+import { faSackDollar } from '@fortawesome/free-solid-svg-icons'
 import { Clipboard } from '@capacitor/clipboard'
+import axios from 'axios'
+
+// Local libraries
+import config from '../../config'
 
 // let _this
 
@@ -35,8 +39,11 @@ class SellTokenButton extends React.Component {
       // Modal inputs
       sendToAddress: '',
       sendQtyStr: '',
-      sendQtyNum: 0
+      sendQtyNum: 0,
+      pricePerTokenStr: ''
     }
+
+    this.handleSellTokens = this.handleSellTokens.bind(this)
 
     // _this = this
   }
@@ -96,50 +103,38 @@ class SellTokenButton extends React.Component {
     return (
       <Modal show={this.state.showModal} size='lg' onHide={(e) => this.handleCloseModal(this)}>
         <Modal.Header closeButton>
-          <Modal.Title><FontAwesomeIcon icon={faPaperPlane} size='lg' /> Send Tokens: <span style={{ color: 'red' }}>{token.ticker}</span></Modal.Title>
+          <Modal.Title><FontAwesomeIcon icon={faSackDollar} size='lg' /> Sell Tokens: <span style={{ color: 'red' }}>{token.ticker}</span></Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Container>
             <Row>
-              <Col style={{ textAlign: 'center' }}>
-                <b>SLP Address:</b>
-              </Col>
+              <Col xs={4}><b>Asset ID:</b></Col>
+              <Col xs={8} style={{ wordBreak: 'break-all' }}>{this.state.token.assetID}</Col>
             </Row>
+            <br />
 
             <Row>
-              <Col xs={10}>
-                <Form>
-                  <Form.Group controlId='formBasicEmail' style={{ textAlign: 'center' }}>
-                    <Form.Control
-                      type='text'
-                      placeholder='simpleledger:qqlrzp23w08434twmvr4fxw672whkjy0pyxpgpyg0n'
-                      onChange={e => this.setState({ sendToAddress: e.target.value })}
-                      value={this.state.sendToAddress}
-                    />
-                  </Form.Group>
-                </Form>
-              </Col>
+              <Col xs={4}><b>Symbol:</b></Col>
+              <Col xs={8} style={{ wordBreak: 'break-all' }}>{this.state.token.symbol}</Col>
+            </Row>
+            <br />
 
-              <Col xs={2}>
-                <FontAwesomeIcon
-                  icon={faPaste}
-                  size='lg'
-                  onClick={(e) => this.pasteFromClipboard(e)}
-                />
-              </Col>
+            <Row>
+              <Col xs={4}><b>Balance:</b></Col>
+              <Col xs={8} style={{ wordBreak: 'break-all' }}>{this.state.token.balance}</Col>
             </Row>
             <br />
 
             <Row>
               <Col style={{ textAlign: 'center' }}>
-                <b>Amount:</b>
+                <b>Sell Quantity:</b>
               </Col>
             </Row>
 
             <Row>
               <Col xs={10}>
                 <Form style={{ paddingBottom: '10px' }}>
-                  <Form.Group controlId='formBasicEmail' style={{ textAlign: 'center' }}>
+                  <Form.Group style={{ textAlign: 'center' }}>
                     <Form.Control
                       type='text'
                       onChange={e => this.setState({ sendQtyStr: e.target.value })}
@@ -157,7 +152,28 @@ class SellTokenButton extends React.Component {
 
             <Row>
               <Col style={{ textAlign: 'center' }}>
-                <Button onClick={(e) => this.handleSendTokens(this)}>Send</Button>
+                <b>Price per Token (USD):</b>
+              </Col>
+            </Row>
+
+            <Row>
+              <Col xs={12}>
+                <Form style={{ paddingBottom: '10px' }}>
+                  <Form.Group style={{ textAlign: 'center' }}>
+                    <Form.Control
+                      type='text'
+                      onChange={e => this.setState({ pricePerTokenStr: e.target.value })}
+                      value={this.state.pricePerTokenStr}
+                    />
+                  </Form.Group>
+                </Form>
+              </Col>
+            </Row>
+            <br />
+
+            <Row>
+              <Col style={{ textAlign: 'center' }}>
+                <Button onClick={(e) => this.handleSellTokens(this)}>Sell</Button>
               </Col>
             </Row>
             <br />
@@ -211,63 +227,87 @@ class SellTokenButton extends React.Component {
   }
 
   // Click handler that fires when the user clicks the 'Send' button.
-  async handleSendTokens (instance) {
-    console.log('Send button clicked.')
+  async handleSellTokens () {
+    console.log('Sell button clicked.')
 
     try {
-      instance.setState({
-        statusMsg: 'Preparing to send tokens...',
+      this.setState({
+        statusMsg: 'Preparing to sell tokens...',
         hideSpinner: false
       })
 
-      // Validate the quantity
-      let qty = instance.state.sendQtyStr
+      // const wallet = this.state.appData.avaxWallet
+      // const bchjs = wallet.bchjs
+      const token = this.state.token
+
+      // Validate the quantity input
+      let qty = this.state.sendQtyStr
       qty = parseFloat(qty)
-      if (isNaN(qty)) throw new Error('Invalid send quantity')
+      if (isNaN(qty) || qty <= 0) throw new Error('Invalid send quantity')
 
-      const wallet = instance.state.appData.bchWallet
-      const bchjs = wallet.bchjs
-
-      // Validate the address
-      let addr = instance.state.sendToAddress
-      if (addr.includes('simpleledger')) {
-        // Convert the address to a cash address.
-        addr = bchjs.SLP.Address.toCashAddress(addr)
+      if (qty > token.balance) {
+        throw new Error('Sell quantity is greater than your current balance.')
       }
-      if (!addr.includes('bitcoincash')) throw new Error('Invalid address')
 
       // Update the wallets UTXOs
-      let infoStr = 'Updating UTXOs...'
+      let infoStr = 'Getting AVAX spot price...'
       console.log(infoStr)
-      instance.setState({ statusMsg: infoStr })
-      await wallet.getUtxos()
+      this.setState({ statusMsg: infoStr })
 
-      const receiver = [{
-        address: addr,
-        tokenId: instance.state.token.tokenId,
-        qty
-      }]
+      // const avaxPrice = await wallet.getUsd()
+      const request = await axios.get(`${config.server}/mnemonic/price`)
+      const avaxSpotPrice = request.data.usd
+      console.log('avaxSpotPrice: ', avaxSpotPrice)
 
-      // Send the tokens
-      infoStr = 'Generating and broadcasting transaction...'
+      // Validate the price-per-token input.
+      let pricePerToken = this.state.pricePerTokenStr
+      pricePerToken = parseFloat(pricePerToken)
+      if (isNaN(pricePerToken) || pricePerToken <= 0) throw new Error('Invalid price per token')
+
+      // Calculate the other fields.
+      const avaxPerToken = pricePerToken / avaxSpotPrice
+      console.log('avaxPerToken: ', avaxPerToken)
+      const nAvaxPerToken = Math.floor(avaxPerToken * Math.pow(10, 9))
+      console.log('nAvaxPerToken: ', nAvaxPerToken)
+
+      // Construct object
+      const order = {
+        lokadId: 'SWP',
+        messageType: 1,
+        messageClass: 1,
+        tokenId: this.state.token.assetID,
+        buyOrSell: 'sell',
+        rateInSats: nAvaxPerToken,
+        minSatsToExchange: nAvaxPerToken,
+        numTokens: qty
+      }
+
+      infoStr = 'Submitting order to avax-dex API (this can take a minute)...'
       console.log(infoStr)
-      instance.setState({ statusMsg: infoStr })
+      this.setState({ statusMsg: infoStr })
 
-      const txid = await wallet.sendTokens(receiver, 3)
-      console.log(`Token sent. TXID: ${txid}`)
+      const options = {
+        method: 'post',
+        url: `${config.server}/order`,
+        data: { order }
+      }
+      const result = await axios(options)
+      // console.log('result.data: ', result.data)
 
-      instance.setState({
-        statusMsg: (<p>Success! <a href={`https://token.fullstack.cash/transactions/?txid=${txid}`} target='_blank' rel='noreferrer'>See on Block Explorer</a></p>),
+      const p2wdbHash = result.data.hash
+
+      this.setState({
+        statusMsg: (<p><b>Success!</b> Offer Created and updated to <a href={`https://p2wdb.fullstack.cash/entry/hash/${p2wdbHash}`} target='_blank' rel='noreferrer'>P2WDB</a>!</p>),
         hideSpinner: true,
         sendQtyStr: '',
-        sendToAddress: '',
+        pricePerTokenStr: '',
         shouldRefreshOnModalClose: true
       })
     } catch (err) {
       console.error('Error in handleSendTokens(): ', err)
 
-      instance.setState({
-        statusMsg: `Error sending tokens: ${err.message}`,
+      this.setState({
+        statusMsg: `Error selling tokens: ${err.message}`,
         hideSpinner: true
       })
     }
