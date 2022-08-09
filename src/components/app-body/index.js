@@ -14,8 +14,11 @@ import BchWallet from '../bch-wallet'
 import BchSend from '../bch-send'
 import SlpTokens from '../slp-tokens'
 import ServerSelectView from '../servers/select-server-view'
+import AvaxWallet from '../avax-wallet'
+import AvaxTokens from '../avax-tokens'
+import Offers from '../offers'
 
-let _this
+// let _this
 
 class AppBody extends React.Component {
   constructor (props) {
@@ -35,7 +38,7 @@ class AppBody extends React.Component {
     // the BCH wallet state.
     this.updateBchWalletState = props.appData.updateBchWalletState
 
-    _this = this
+    // _this = this
   }
 
   render () {
@@ -53,13 +56,23 @@ class AppBody extends React.Component {
 
     switch (menuState) {
       case 0:
-        return (<BchSend appData={_this.state.appData} />)
+        return (<Offers appData={this.state.appData} />)
       case 1:
-        return (<SlpTokens appData={_this.state.appData} />)
+        return (<AvaxTokens appData={this.state.appData} />)
       case 2:
+        return (<BchSend appData={this.state.appData} />)
+      case 3:
+        return (<SlpTokens appData={this.state.appData} />)
+      case 4:
         return (
           <BchWallet
-            appData={_this.state.appData}
+            appData={this.state.appData}
+          />
+        )
+      case 5:
+        return (
+          <AvaxWallet
+            appData={this.state.appData}
           />
         )
 
@@ -67,7 +80,7 @@ class AppBody extends React.Component {
       case 100:
         return (<ServerSelectView appData={this.state.appData} />)
       default:
-        return (<BchSend appData={_this.state.appData} />)
+        return (<Offers appData={this.state.appData} />)
     }
   }
 }

@@ -20,8 +20,8 @@ class WalletSummary extends React.Component {
     super(props)
 
     this.state = {
-      bchWallet: props.bchWallet,
-      bchWalletState: props.bchWalletState,
+      avaxWallet: props.avaxWallet,
+      avaxWalletState: props.avaxWalletState,
       appData: props.appData,
       blurredMnemonic: true,
       blurredPrivateKey: true
@@ -31,7 +31,7 @@ class WalletSummary extends React.Component {
   }
 
   render () {
-    // console.log(`WalletSummary render() this.state.bchWalletState: ${JSON.stringify(this.state.bchWalletState, null, 2)}`)
+    // console.log(`WalletSummary render() this.state.avaxWalletState: ${JSON.stringify(this.state.avaxWalletState, null, 2)}`)
 
     const eyeIcon = {
       mnemonic: _this.state.blurredMnemonic ? faEyeSlash : faEye,
@@ -54,7 +54,7 @@ class WalletSummary extends React.Component {
                   <Container>
                     <Row style={{ padding: '25px' }}>
                       <Col xs={12} sm={10} lg={8} style={{ padding: '10px' }}>
-                        <b>Mnemonic:</b> <span className={this.state.blurredMnemonic ? 'blurred' : null}>{this.state.bchWalletState.mnemonic}</span>
+                        <b>Mnemonic:</b> <span className={this.state.blurredMnemonic ? 'blurred' : null}>{this.state.avaxWalletState.mnemonic}</span>
                       </Col>
                       <Col xs={6} sm={1} lg={2} style={{ textAlign: 'center' }}>
                         <FontAwesomeIcon icon={eyeIcon.mnemonic} size='lg' onClick={() => _this.toggleMnemonicBlur()} />
@@ -66,7 +66,7 @@ class WalletSummary extends React.Component {
 
                     <Row style={{ padding: '25px', backgroundColor: '#eee' }}>
                       <Col xs={12} sm={10} lg={8} style={{ padding: '10px' }}>
-                        <b>Private Key:</b> <span className={this.state.blurredPrivateKey ? 'blurred' : null}>{this.state.bchWalletState.privateKey}</span>
+                        <b>Private Key:</b> <span className={this.state.blurredPrivateKey ? 'blurred' : null}>{this.state.avaxWalletState.privateKey}</span>
                       </Col>
                       <Col xs={6} sm={1} lg={2} style={{ textAlign: 'center' }}>
                         <FontAwesomeIcon icon={eyeIcon.privateKey} size='lg' onClick={() => _this.togglePrivateKeyBlur()} />
@@ -78,41 +78,11 @@ class WalletSummary extends React.Component {
 
                     <Row style={{ padding: '25px' }}>
                       <Col xs={12} sm={10} lg={8} style={{ padding: '10px' }}>
-                        <b>Cash Address:</b> {this.state.bchWalletState.cashAddress}
+                        <b>Address:</b> {this.state.avaxWalletState.address}
                       </Col>
                       <Col xs={6} sm={1} lg={2} style={{ textAlign: 'center' }} />
                       <Col xs={6} sm={1} lg={2} style={{ textAlign: 'center' }}>
                         <CopyOnClick walletProp='cashAddress' appData={this.state.appData} />
-                      </Col>
-                    </Row>
-
-                    <Row style={{ padding: '25px', backgroundColor: '#eee' }}>
-                      <Col xs={12} sm={10} lg={8} style={{ padding: '10px' }}>
-                        <b>SLP Address:</b> {this.state.bchWalletState.slpAddress}
-                      </Col>
-                      <Col xs={6} sm={1} lg={2} style={{ textAlign: 'center' }} />
-                      <Col xs={6} sm={1} lg={2} style={{ textAlign: 'center' }}>
-                        <CopyOnClick walletProp='slpAddress' appData={this.state.appData} />
-                      </Col>
-                    </Row>
-
-                    <Row style={{ padding: '25px' }}>
-                      <Col xs={12} sm={10} lg={8} style={{ padding: '10px' }}>
-                        <b>Legacy Address:</b> {this.state.bchWalletState.legacyAddress}
-                      </Col>
-                      <Col xs={6} sm={1} lg={2} style={{ textAlign: 'center' }} />
-                      <Col xs={6} sm={1} lg={2} style={{ textAlign: 'center' }}>
-                        <CopyOnClick walletProp='legacyAddress' appData={this.state.appData} />
-                      </Col>
-                    </Row>
-
-                    <Row style={{ padding: '25px', backgroundColor: '#eee' }}>
-                      <Col xs={10} sm={10} lg={8} style={{ padding: '10px' }}>
-                        <b>HD Path:</b> {this.state.bchWalletState.hdPath}
-                      </Col>
-                      <Col xs={6} sm={1} lg={2} style={{ textAlign: 'center' }} />
-                      <Col xs={6} sm={1} lg={2} style={{ textAlign: 'center' }}>
-                        <CopyOnClick walletProp='hdPath' appData={this.state.appData} />
                       </Col>
                     </Row>
                   </Container>
@@ -141,7 +111,7 @@ class WalletSummary extends React.Component {
   async copyToClipboard (key) {
     // console.log('copyToClipboard() key: ', key)
 
-    const val = _this.state.bchWalletState[key]
+    const val = _this.state.avaxWalletState[key]
     // console.log(`value copied to clipboard: ${val}`)
 
     try {
