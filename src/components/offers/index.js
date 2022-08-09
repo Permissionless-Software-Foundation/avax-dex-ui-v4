@@ -11,6 +11,7 @@ import { DatatableWrapper, TableBody, TableHeader } from 'react-bs-datatable'
 
 // Local libraries
 import config from '../../config'
+import WaitingModal from '../waiting-modal'
 
 // Global variables and constants
 const SERVER = `${config.server}/`
@@ -57,8 +58,16 @@ class Offers extends React.Component {
       textInput: '',
       // wallet: props.wallet,
       appData: props.appData,
-      offers: []
+      offers: [],
+
+      // Modal state
+      showModal: false,
+      modalBody: [],
+      hideSpinner: false
     }
+
+    // Bind this do event handlers
+    this.handleBuy = this.handleBuy.bind(this)
 
     // _this = this
   }
@@ -66,9 +75,15 @@ class Offers extends React.Component {
   render () {
     // console.log(`Rendering with this offer data: ${JSON.stringify(this.state.offers, null, 2)}`)
 
-    return (
+    const heading = 'Generating Counter Offer...'
 
+    return (
       <>
+        {
+          this.state.showModal
+            ? <WaitingModal heading={heading} body={this.state.modalBody} hideSpinner={this.state.hideSpinner} />
+            : null
+        }
         <Container>
           <Row>
             <Col className='text-break' style={{ textAlign: 'center' }}>
@@ -132,8 +147,16 @@ class Offers extends React.Component {
 
   async handleBuy (event) {
     console.log('Buy button clicked. Event: ', event)
+
     const targetOffer = event.target.id
     console.log('targetOffer: ', targetOffer)
+
+    // Initialize modal
+    this.setState({
+      showModal: true,
+      modalBody: ['Generating Counter Offer...', '(This can take a couple minutes)'],
+      hideSpinner: false
+    })
 
     const options = {
       method: 'post',
@@ -145,6 +168,20 @@ class Offers extends React.Component {
 
     const result = await axios.request(options)
     console.log('result.data: ', result.data)
+    const p2wdbHash = result.data.hash
+
+    // Add link to output
+    const modalBody = []
+    modalBody.push('Success!')
+    modalBody.push(<p><a href={`https://p2wdb.fullstack.cash/entry/hash/${p2wdbHash}`} target='_blank' rel='noreferrer'>P2WDB Entry</a></p>)
+    modalBody.push('What happens next:')
+    modalBody.push('The money has not yet left your wallet! It is still under your control.')
+    modalBody.push('If the sellers node is online, they will accept the Counter Offer you just generated in a few minutes.')
+    modalBody.push('If the tokens never show up, you can sweep the funds back into your wallet.')
+    this.setState({
+      modalBody,
+      hideSpinner: true
+    })
   }
 
   // REST request to get data from avax-dex
