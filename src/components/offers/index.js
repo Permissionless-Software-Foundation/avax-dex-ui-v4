@@ -122,7 +122,7 @@ class Offers extends React.Component {
 
     for (let i = 0; i < offerRawData.length; i++) {
       const thisOffer = offerRawData[i]
-      console.log(`thisOffer: ${JSON.stringify(thisOffer, null, 2)}`)
+      // console.log(`thisOffer: ${JSON.stringify(thisOffer, null, 2)}`)
 
       // Get and format the token ID
       const tokenId = thisOffer.tokenId

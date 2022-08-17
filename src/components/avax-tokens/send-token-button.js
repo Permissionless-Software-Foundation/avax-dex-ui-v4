@@ -38,6 +38,9 @@ class SentTokenButton extends React.Component {
       sendQtyNum: 0
     }
 
+    // Bind this to event handlers
+    this.handleSendTokens = this.handleSendTokens.bind(this)
+
     // _this = this
   }
 
@@ -112,7 +115,7 @@ class SentTokenButton extends React.Component {
                   <Form.Group controlId='formBasicEmail' style={{ textAlign: 'center' }}>
                     <Form.Control
                       type='text'
-                      placeholder='simpleledger:qqlrzp23w08434twmvr4fxw672whkjy0pyxpgpyg0n'
+                      placeholder='X-avax1q3qcy2tz52f60e9u6pve66ap3d0q5aw9ksznvq'
                       onChange={e => this.setState({ sendToAddress: e.target.value })}
                       value={this.state.sendToAddress}
                     />
@@ -157,7 +160,7 @@ class SentTokenButton extends React.Component {
 
             <Row>
               <Col style={{ textAlign: 'center' }}>
-                <Button onClick={(e) => this.handleSendTokens(this)}>Send</Button>
+                <Button onClick={this.handleSendTokens}>Send</Button>
               </Col>
             </Row>
             <br />
@@ -211,52 +214,62 @@ class SentTokenButton extends React.Component {
   }
 
   // Click handler that fires when the user clicks the 'Send' button.
-  async handleSendTokens (instance) {
+  async handleSendTokens () {
     console.log('Send button clicked.')
 
     try {
-      instance.setState({
+      this.setState({
         statusMsg: 'Preparing to send tokens...',
         hideSpinner: false
       })
 
       // Validate the quantity
-      let qty = instance.state.sendQtyStr
+      let qty = this.state.sendQtyStr
       qty = parseFloat(qty)
       if (isNaN(qty)) throw new Error('Invalid send quantity')
 
-      const wallet = instance.state.appData.bchWallet
-      const bchjs = wallet.bchjs
+      // Convert the AVAX qty to nAVAX
+      qty = qty * Math.pow(10, this.state.token.denomination)
+      console.log('final quantity: ', qty)
+
+      const wallet = this.state.appData.avaxWallet
+      // const bchjs = wallet.bchjs
 
       // Validate the address
-      let addr = instance.state.sendToAddress
-      if (addr.includes('simpleledger')) {
-        // Convert the address to a cash address.
-        addr = bchjs.SLP.Address.toCashAddress(addr)
-      }
-      if (!addr.includes('bitcoincash')) throw new Error('Invalid address')
+      const addr = this.state.sendToAddress
+      // if (addr.includes('simpleledger')) {
+      //   // Convert the address to a cash address.
+      //   addr = bchjs.SLP.Address.toCashAddress(addr)
+      // }
+      // if (!addr.includes('bitcoincash')) throw new Error('Invalid address')
 
       // Update the wallets UTXOs
       let infoStr = 'Updating UTXOs...'
       console.log(infoStr)
-      instance.setState({ statusMsg: infoStr })
+      this.setState({ statusMsg: infoStr })
       await wallet.getUtxos()
+
+      console.log('this.state.token: ', this.state.token)
 
       const receiver = [{
         address: addr,
-        tokenId: instance.state.token.tokenId,
-        qty
+        assetID: this.state.token.assetID,
+        amount: qty
       }]
+      console.log(`receiver: ${JSON.stringify(receiver, null, 2)}`)
+
+      const utxos = wallet.utxos.utxoStore
+      console.log('utxos: ', utxos)
 
       // Send the tokens
       infoStr = 'Generating and broadcasting transaction...'
       console.log(infoStr)
-      instance.setState({ statusMsg: infoStr })
+      this.setState({ statusMsg: infoStr })
 
-      const txid = await wallet.sendTokens(receiver, 3)
+      const txid = await wallet.send(receiver)
       console.log(`Token sent. TXID: ${txid}`)
 
-      instance.setState({
+      this.setState({
         statusMsg: (<p>Success! <a href={`https://token.fullstack.cash/transactions/?txid=${txid}`} target='_blank' rel='noreferrer'>See on Block Explorer</a></p>),
         hideSpinner: true,
         sendQtyStr: '',
@@ -266,7 +279,7 @@ class SentTokenButton extends React.Component {
     } catch (err) {
       console.error('Error in handleSendTokens(): ', err)
 
-      instance.setState({
+      this.setState({
         statusMsg: `Error sending tokens: ${err.message}`,
         hideSpinner: true
       })
