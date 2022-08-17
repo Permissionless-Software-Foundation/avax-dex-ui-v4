@@ -15,5 +15,13 @@ This open source software is developed and maintained by the [Permissionless Sof
 <p>bitcoincash:qqsrke9lh257tqen99dkyy2emh4uty0vky9y0z0lsr</p>
 </div>
 
+## For JavaScript Developers
+
+This is a fork of [react-bootstrap-web3-android](https://github.com/Permissionless-Software-Foundation/react-bootstrap-web3-android), which is a fork of [react-bootstrap-web3-spa](https://github.com/Permissionless-Software-Foundation/react-bootstrap-web3-spa). That boilerplate is used to build a React app using the [react-boostrap library](https://www.npmjs.com/package/react-bootstrap).
+
+Additional documentation:
+- [Developer Documentation](./dev-docs)
+- [Deployment Targets](./deploy)
+
 ## License
 [MIT](./LICENSE.md)
