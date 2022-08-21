@@ -272,7 +272,7 @@ class AsyncLoad {
   async getMnemonics () {
     try {
       // const url = 'http://localhost:5700/mnemonic'
-      const url = 'https://avax-dex-api.fullstack.cash'
+      const url = 'https://avax-dex-api.fullstack.cash/mnemonic'
 
       const response = await axios.get(url)
       const data = response.data
