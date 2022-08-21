@@ -146,7 +146,7 @@ class Offers extends React.Component {
   }
 
   async handleBuy (event) {
-    alert('Buying tokens is disabled in the demo.')
+    alert('Buying tokens is disabled in the demo.')  // eslint-disable-line
   }
 
   // async handleBuy (event) {

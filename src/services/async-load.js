@@ -271,7 +271,8 @@ class AsyncLoad {
   // Retrieve the AVAX and BCH wallet mnemonics from the avax-dex server.
   async getMnemonics () {
     try {
-      const url = 'http://localhost:5700/mnemonic'
+      // const url = 'http://localhost:5700/mnemonic'
+      const url = 'https://avax-dex-api.fullstack.cash'
 
       const response = await axios.get(url)
       const data = response.data
